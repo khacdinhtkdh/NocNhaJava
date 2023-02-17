@@ -9,6 +9,8 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -70,14 +72,12 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 
 public class MainActivity extends AppCompatActivity implements RequestDialog.NoticeDialogListener {
-    private String TAG = "KD_MAIN";
-    private ActivityMainBinding binding;
+    private final String TAG = "KD_MAIN";
     androidx.appcompat.widget.Toolbar toolbar_main;
     private RecyclerView recyclerViewList;
     FloatingActionButton fabRequest;
 
     private DatabaseReference refUser;
-    private FirebaseUser firebaseUser;
     String firebaseUserId;
     private UserInfo userInfo;
     ArrayList<Requests> listRequest;
@@ -90,14 +90,14 @@ public class MainActivity extends AppCompatActivity implements RequestDialog.Not
 
     ValueEventListener valueEventListener;
 
-    private String tokenApprove;
+    private String tokenApprove, tokenRequest;
     private APIService apiService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "onCreate");
-        binding = ActivityMainBinding.inflate(getLayoutInflater());
+        com.example.nocnha.databinding.ActivityMainBinding binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         toolbar_main = findViewById(R.id.toolbar_main);
         setSupportActionBar(toolbar_main);
@@ -110,7 +110,7 @@ public class MainActivity extends AppCompatActivity implements RequestDialog.Not
         imgProfile = findViewById(R.id.imgMainProfile);
         fabRequest = findViewById(R.id.addRequest);
 
-        firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
         assert firebaseUser != null;
         firebaseUserId = firebaseUser.getUid();
         refUser = FirebaseDatabase.getInstance().getReference().child(USERS).child(firebaseUser.getUid());
@@ -122,18 +122,15 @@ public class MainActivity extends AppCompatActivity implements RequestDialog.Not
 
         apiService = RetrofitClient.getClient(FCM_URL).create(APIService.class);
 
-        fabRequest.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+        fabRequest.setOnClickListener(view -> {
 //                Snackbar.make(view, "Here's a Snackbar", Snackbar.LENGTH_LONG)
 //                        .setAction("Action", null).show();
-                if (isApprove) {
-                    Toast.makeText(getApplicationContext(), "you are approver, not need request!", Toast.LENGTH_SHORT).show();
-                } else {
-                    getTokenApprove();
-                    RequestDialog requestDialog = new RequestDialog();
-                    requestDialog.show(getSupportFragmentManager(), "");
-                }
+            if (isApprove) {
+                Toast.makeText(getApplicationContext(), "you are approver, not need request!", Toast.LENGTH_SHORT).show();
+            } else {
+                getTokenApprove();
+                RequestDialog requestDialog = new RequestDialog();
+                requestDialog.show(getSupportFragmentManager(), "");
             }
         });
 
@@ -182,14 +179,13 @@ public class MainActivity extends AppCompatActivity implements RequestDialog.Not
     }
 
     private void retrieveList() {
-        listRequest = new ArrayList<Requests>();
+        listRequest = new ArrayList<>();
         DatabaseReference reference = FirebaseDatabase.getInstance().getReference().child(REQUEST_LIST);
         reference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 listRequest.clear();
                 for (DataSnapshot p0 : snapshot.getChildren()) {
-                    Log.d(TAG, "retrieveList");
                     Requests request = p0.getValue(Requests.class);
                     assert request != null;
                     if ((Objects.equals(request.sender, firebaseUserId) && Objects.equals(request.receiver, friendId)) ||
@@ -217,13 +213,14 @@ public class MainActivity extends AppCompatActivity implements RequestDialog.Not
         return super.onCreateOptionsMenu(menu);
     }
 
+    @SuppressLint("NonConstantResourceId")
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         Intent intent;
         switch (item.getItemId()) {
             case R.id.menu_addFriend:
                 intent = new Intent(this, AddFriendActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+//                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
                 startActivity(intent);
                 finish();
                 break;
@@ -258,15 +255,11 @@ public class MainActivity extends AppCompatActivity implements RequestDialog.Not
 
                 Snackbar snackbar = Snackbar.make(viewHolder.itemView, "you are " +
                         (direction == ItemTouchHelper.RIGHT ? "rejected" : "approved") + ".", Snackbar.LENGTH_LONG);
-                snackbar.setAction(android.R.string.cancel, new View.OnClickListener() {
-
-                    @Override
-                    public void onClick(View view) {
-                        try {
-                            doActionItem(request, PENDING);
-                        } catch(Exception e) {
-                            Log.e("MainActivity", e.getMessage());
-                        }
+                snackbar.setAction(android.R.string.cancel, view -> {
+                    try {
+                        doActionItem(request, PENDING);
+                    } catch(Exception e) {
+                        Log.e("MainActivity", e.getMessage());
                     }
                 });
                 snackbar.show();
@@ -331,6 +324,13 @@ public class MainActivity extends AppCompatActivity implements RequestDialog.Not
         request.status = action;
         FirebaseDatabase.getInstance().getReference().child(REQUEST_LIST)
                 .child(request.ID).child("status").setValue(action);
+        getTokenRequest(request.sender);
+        String res = Objects.equals(action, APPROVE) ? "Approved" : "rejected";
+        sendNotification(res, tokenRequest);
+
+        final Handler handler = new Handler(Looper.getMainLooper());
+        handler.postDelayed(() -> sendNotification(res, tokenRequest), 500);
+
         retrieveList();
     }
 
@@ -354,13 +354,10 @@ public class MainActivity extends AppCompatActivity implements RequestDialog.Not
         hashMap.put("ID", ID);
 
         assert ID != null;
-        databaseReference.child(ID).setValue(hashMap).addOnCompleteListener(new OnCompleteListener<Void>() {
-            @Override
-            public void onComplete(@NonNull Task<Void> task) {
-                if (task.isSuccessful()) {
-                    sendNotification(catalog);
-                    Toast.makeText(getApplicationContext(), "Sent request", Toast.LENGTH_SHORT).show();
-                }
+        databaseReference.child(ID).setValue(hashMap).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                sendNotification(catalog, tokenApprove);
+                Toast.makeText(getApplicationContext(), "Sent request", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -370,14 +367,14 @@ public class MainActivity extends AppCompatActivity implements RequestDialog.Not
 
     }
 
-    private void sendNotification(String body){
-        Log.d(TAG, body + " " + tokenApprove);
+    private void sendNotification(String body, String token){
+        Log.d(TAG, body + " " + token);
         Data data = new Data(body);
 
-        DataSend dataSend = new DataSend(data, tokenApprove);
+        DataSend dataSend = new DataSend(data, token);
         apiService.sendNotification(dataSend).enqueue(new Callback<DataSend>() {
             @Override
-            public void onResponse(Call<DataSend> call, Response<DataSend> response) {
+            public void onResponse(@NonNull Call<DataSend> call, @NonNull Response<DataSend> response) {
                 Log.d(TAG, "response.code() = " + response.code());
                 if (response.code() == 200) {
                     Log.d(TAG, "sendNotification");
@@ -385,7 +382,7 @@ public class MainActivity extends AppCompatActivity implements RequestDialog.Not
             }
 
             @Override
-            public void onFailure(Call<DataSend> call, Throwable t) {
+            public void onFailure(@NonNull Call<DataSend> call, @NonNull Throwable t) {
                 Log.d(TAG, "send fail" + t);
             }
         });
@@ -424,15 +421,20 @@ public class MainActivity extends AppCompatActivity implements RequestDialog.Not
         if (friendId != null) {
             DatabaseReference databaseReference =  FirebaseDatabase.getInstance().getReference()
                     .child(TOKEN).child(friendId).child("token");
-            databaseReference.get().addOnCompleteListener(new OnCompleteListener<DataSnapshot>() {
-                @Override
-                public void onComplete(@NonNull Task<DataSnapshot> task) {
-                    tokenApprove = task.getResult().getValue().toString();
-                    Log.d(TAG, tokenApprove);
-                }
+            databaseReference.get().addOnCompleteListener(task -> {
+                tokenApprove = task.getResult().getValue().toString();
+                Log.d(TAG, tokenApprove);
             });
-
         }
+    }
+
+    private void getTokenRequest(String uid){
+        DatabaseReference databaseReference =  FirebaseDatabase.getInstance().getReference()
+                .child(TOKEN).child(uid).child("token");
+        databaseReference.get().addOnCompleteListener(task -> {
+            tokenRequest = task.getResult().getValue().toString();
+            Log.d(TAG, tokenRequest);
+        });
     }
 
 }
