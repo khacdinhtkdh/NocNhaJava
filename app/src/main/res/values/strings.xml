@@ -23,4 +23,12 @@
     <string name="default_notification_channel_id" translatable="false">fcm_default_channel</string>
     <string name="approver">approve</string>
     <string name="requester">request</string>
+    <string name="filter">Filter</string>
+
+    <string-array name="filterType">
+        <item>Pending</item>
+        <item>Approved</item>
+        <item>Reject</item>
+        <item>All</item>
+    </string-array>
 </resources>

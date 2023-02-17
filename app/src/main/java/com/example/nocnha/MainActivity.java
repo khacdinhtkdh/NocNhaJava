@@ -36,6 +36,7 @@ import com.example.nocnha.adapter.RequestAdapter;
 import com.example.nocnha.controller.AddFriendActivity;
 import com.example.nocnha.controller.LoginActivity;
 import com.example.nocnha.databinding.ActivityMainBinding;
+import com.example.nocnha.dialog.FilterDialog;
 import com.example.nocnha.dialog.RequestDialog;
 import com.example.nocnha.modelClass.Data;
 import com.example.nocnha.modelClass.DataSend;
@@ -71,7 +72,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 
-public class MainActivity extends AppCompatActivity implements RequestDialog.NoticeDialogListener {
+public class MainActivity extends AppCompatActivity implements RequestDialog.NoticeDialogListener, FilterDialog.FilterDialogListener {
     private final String TAG = "KD_MAIN";
     androidx.appcompat.widget.Toolbar toolbar_main;
     private RecyclerView recyclerViewList;
@@ -80,7 +81,7 @@ public class MainActivity extends AppCompatActivity implements RequestDialog.Not
     private DatabaseReference refUser;
     String firebaseUserId;
     private UserInfo userInfo;
-    ArrayList<Requests> listRequest;
+    ArrayList<Requests> listRequest, filterRequest;
     RequestAdapter requestAdapter;
 
     TextView txtUserName;
@@ -114,6 +115,8 @@ public class MainActivity extends AppCompatActivity implements RequestDialog.Not
         assert firebaseUser != null;
         firebaseUserId = firebaseUser.getUid();
         refUser = FirebaseDatabase.getInstance().getReference().child(USERS).child(firebaseUser.getUid());
+
+        filterRequest = new ArrayList<>();
 
         displayInformation();
 
@@ -218,9 +221,13 @@ public class MainActivity extends AppCompatActivity implements RequestDialog.Not
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         Intent intent;
         switch (item.getItemId()) {
+            case R.id.menu_filter:
+                FilterDialog filterDialog = new FilterDialog();
+                filterDialog.show(getSupportFragmentManager(), "");
+                break;
             case R.id.menu_addFriend:
                 intent = new Intent(this, AddFriendActivity.class);
-//                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
                 startActivity(intent);
                 finish();
                 break;
@@ -437,4 +444,20 @@ public class MainActivity extends AppCompatActivity implements RequestDialog.Not
         });
     }
 
+    @SuppressLint("NotifyDataSetChanged")
+    @Override
+    public void onDialogPositiveClick(DialogFragment dialog, int status) {
+        if (status < 3) {
+            filterRequest.clear();
+            for (Requests request : listRequest) {
+                if (request.status == status) {
+                    filterRequest.add(request);
+                }
+            }
+            requestAdapter.setListRequest(filterRequest);
+        } else {
+            requestAdapter.setListRequest(listRequest);
+        }
+        requestAdapter.notifyDataSetChanged();
+    }
 }

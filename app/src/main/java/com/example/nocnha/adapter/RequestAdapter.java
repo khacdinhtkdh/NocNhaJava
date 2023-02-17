@@ -28,6 +28,11 @@ public class RequestAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     public RequestAdapter(ArrayList<Requests> listRequest) {
         this.listRequest = listRequest;
     }
+
+    public void setListRequest(ArrayList<Requests> list) {
+        this.listRequest = list;
+    }
+
     @NonNull
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
