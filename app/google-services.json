@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "771964672588",
+    "firebase_url": "https://nocnha-26803-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "nocnha-26803",
+    "storage_bucket": "nocnha-26803.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:771964672588:android:f5fdedfeddc0f6d9f7b2e9",
+        "android_client_info": {
+          "package_name": "com.example.nocnha"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "771964672588-1pdg6jbinl3rm3hqedqbnb5imm659jqt.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC4IqXqOkh2eSxmnkq3nkGNBt4RqvHAUQk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "771964672588-1pdg6jbinl3rm3hqedqbnb5imm659jqt.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
