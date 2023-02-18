@@ -24,6 +24,7 @@
     <string name="approver">approve</string>
     <string name="requester">request</string>
     <string name="filter">Filter</string>
+    <string name="show_full_image_profile">show full image profile</string>
 
     <string-array name="filterType">
         <item>Pending</item>

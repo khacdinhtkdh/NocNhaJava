@@ -14,6 +14,9 @@
         android:theme="@style/Theme.NocNha"
         tools:targetApi="31">
         <activity
+            android:name=".controller.UpdateInfoActivity"
+            android:exported="false" />
+        <activity
             android:name=".controller.AddFriendActivity"
             android:exported="false" />
 
@@ -31,7 +34,7 @@
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"
-            android:theme="@style/Theme.NocNha.NoActionBar"></activity>
+            android:theme="@style/Theme.NocNha.NoActionBar" />
         <activity
             android:name=".controller.LoginActivity"
             android:exported="true"

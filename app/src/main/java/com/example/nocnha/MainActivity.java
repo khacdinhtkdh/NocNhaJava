@@ -35,6 +35,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.nocnha.adapter.RequestAdapter;
 import com.example.nocnha.controller.AddFriendActivity;
 import com.example.nocnha.controller.LoginActivity;
+import com.example.nocnha.controller.UpdateInfoActivity;
 import com.example.nocnha.databinding.ActivityMainBinding;
 import com.example.nocnha.dialog.FilterDialog;
 import com.example.nocnha.dialog.RequestDialog;
@@ -124,6 +125,14 @@ public class MainActivity extends AppCompatActivity implements RequestDialog.Not
 
 
         apiService = RetrofitClient.getClient(FCM_URL).create(APIService.class);
+
+        imgProfile.setOnClickListener(v -> {
+            Intent intent = new Intent(this, UpdateInfoActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+            intent.putExtra(EXTRA_URL, userInfo.profile);
+            startActivity(intent);
+            finish();
+        });
 
         fabRequest.setOnClickListener(view -> {
 //                Snackbar.make(view, "Here's a Snackbar", Snackbar.LENGTH_LONG)
