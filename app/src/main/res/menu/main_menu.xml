@@ -4,8 +4,8 @@
         android:title="@string/filter"/>
     <item android:id="@+id/menu_addFriend"
         android:title="@string/add_friend"/>
-    <item android:title="@string/new_request"
-        android:id="@+id/menu_NewRequest"/>
+    <item android:title="@string/show_summary"
+        android:id="@+id/menu_showSummary"/>
     <item android:id="@+id/menu_signOut"
         android:title="@string/log_out"/>
 </menu>

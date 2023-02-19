@@ -25,11 +25,5 @@
     <string name="requester">request</string>
     <string name="filter">Filter</string>
     <string name="show_full_image_profile">show full image profile</string>
-
-    <string-array name="filterType">
-        <item>Pending</item>
-        <item>Approved</item>
-        <item>Reject</item>
-        <item>All</item>
-    </string-array>
+    <string name="show_summary">Show Summary</string>
 </resources>

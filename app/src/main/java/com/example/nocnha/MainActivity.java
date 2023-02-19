@@ -22,7 +22,6 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.ActionBar;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -36,6 +35,7 @@ import com.bumptech.glide.Glide;
 import com.example.nocnha.adapter.RequestAdapter;
 import com.example.nocnha.controller.AddFriendActivity;
 import com.example.nocnha.controller.LoginActivity;
+import com.example.nocnha.controller.SummaryActivity;
 import com.example.nocnha.controller.UpdateInfoActivity;
 import com.example.nocnha.databinding.ActivityMainBinding;
 import com.example.nocnha.dialog.FilterDialog;
@@ -55,7 +55,6 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.squareup.picasso.Picasso;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -67,10 +66,9 @@ import it.xabaras.android.recyclerview.swipedecorator.RecyclerViewSwipeDecorator
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.Retrofit;
+
 import android.Manifest;
 
-@RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
 public class MainActivity extends AppCompatActivity implements RequestDialog.NoticeDialogListener, FilterDialog.FilterDialogListener {
     private final String TAG = "KD_MAIN";
     androidx.appcompat.widget.Toolbar toolbar_main;
@@ -228,6 +226,37 @@ public class MainActivity extends AppCompatActivity implements RequestDialog.Not
         return super.onCreateOptionsMenu(menu);
     }
 
+    private ArrayList<Integer> showAllRequest() {
+        ArrayList<Integer> value = new ArrayList<>();
+        int cntApprove = 0, priceApprove = 0;
+        int cntReject = 0, priceReject = 0;
+        int cntPending = 0, pricePending = 0;
+        int cntAll = 0, priceAll = 0;
+        for (Requests request : listRequest) {
+            if (request.status == APPROVE) {
+                cntApprove++;
+                priceApprove += Integer.parseInt(request.price);
+            } else if (request.status == REJECT) {
+                cntReject++;
+                priceReject += Integer.parseInt(request.price);
+            } else if (request.status == PENDING) {
+                cntPending++;
+                pricePending += Integer.parseInt(request.price);
+            }
+            cntAll++;
+            priceAll += Integer.parseInt(request.price);
+        }
+        value.add(cntApprove);
+        value.add(cntReject);
+        value.add(cntPending);
+        value.add(cntAll);
+        value.add(priceApprove);
+        value.add(priceReject);
+        value.add(pricePending);
+        value.add(priceAll);
+        return value;
+    }
+
     @SuppressLint("NonConstantResourceId")
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
@@ -243,7 +272,15 @@ public class MainActivity extends AppCompatActivity implements RequestDialog.Not
                 startActivity(intent);
                 finish();
                 break;
-            case R.id.menu_NewRequest:
+            case R.id.menu_showSummary:
+
+                ArrayList<Integer> value = showAllRequest();
+                intent = new Intent(this, SummaryActivity.class);
+                intent.putExtra(EXTRA_SUMMARY, value);
+
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                startActivity(intent);
+                finish();
                 break;
             case R.id.menu_signOut:
                 FirebaseAuth.getInstance().signOut();

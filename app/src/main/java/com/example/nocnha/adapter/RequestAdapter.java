@@ -32,6 +32,9 @@ public class RequestAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     public void setListRequest(ArrayList<Requests> list) {
         this.listRequest = list;
     }
+    public ArrayList<Requests> getListRequest() {
+        return this.listRequest;
+    }
 
     @NonNull
     @Override

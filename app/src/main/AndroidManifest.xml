@@ -14,6 +14,9 @@
         android:theme="@style/Theme.NocNha"
         tools:targetApi="31">
         <activity
+            android:name=".controller.SummaryActivity"
+            android:exported="false" />
+        <activity
             android:name=".controller.UpdateInfoActivity"
             android:exported="false" />
         <activity
