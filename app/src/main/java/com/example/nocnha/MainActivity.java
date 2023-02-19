@@ -15,8 +15,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -24,7 +22,9 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.ActionBar;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.DialogFragment;
 import androidx.recyclerview.widget.ItemTouchHelper;
@@ -32,6 +32,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.bumptech.glide.Glide;
 import com.example.nocnha.adapter.RequestAdapter;
 import com.example.nocnha.controller.AddFriendActivity;
 import com.example.nocnha.controller.LoginActivity;
@@ -41,14 +42,10 @@ import com.example.nocnha.dialog.FilterDialog;
 import com.example.nocnha.dialog.RequestDialog;
 import com.example.nocnha.modelClass.Data;
 import com.example.nocnha.modelClass.DataSend;
-import com.example.nocnha.modelClass.MyResponse;
 import com.example.nocnha.modelClass.Requests;
 import com.example.nocnha.modelClass.RetrofitClient;
 import com.example.nocnha.modelClass.UserInfo;
 import com.example.nocnha.services.APIService;
-import com.google.android.gms.common.api.Api;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.auth.FirebaseAuth;
@@ -58,7 +55,6 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.messaging.FirebaseMessaging;
 import com.squareup.picasso.Picasso;
 
 import java.text.SimpleDateFormat;
@@ -72,7 +68,9 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
+import android.Manifest;
 
+@RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
 public class MainActivity extends AppCompatActivity implements RequestDialog.NoticeDialogListener, FilterDialog.FilterDialogListener {
     private final String TAG = "KD_MAIN";
     androidx.appcompat.widget.Toolbar toolbar_main;
@@ -94,6 +92,11 @@ public class MainActivity extends AppCompatActivity implements RequestDialog.Not
 
     private String tokenApprove, tokenRequest;
     private APIService apiService;
+
+    String[] permission = {
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.POST_NOTIFICATIONS
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -122,7 +125,7 @@ public class MainActivity extends AppCompatActivity implements RequestDialog.Not
         displayInformation();
 
         askNotificationPermission();
-
+//        askPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE, STORAGE_PERMISSION_CODE);
 
         apiService = RetrofitClient.getClient(FCM_URL).create(APIService.class);
 
@@ -325,7 +328,8 @@ public class MainActivity extends AppCompatActivity implements RequestDialog.Not
                     txtUserName.setText(userInfo.userName);
                     friendId = userInfo.friend;
                     isApprove = Objects.equals(userInfo.type, "approve");
-                    Picasso.get().load(userInfo.profile).placeholder(R.drawable.ic_profile).into(imgProfile);
+//                    Picasso.get().load(userInfo.profile).placeholder(R.drawable.ic_profile).into(imgProfile);
+                    Glide.with(getApplicationContext()).load(userInfo.profile).override(32, 32).into(imgProfile);
                 }
             }
 
@@ -418,17 +422,35 @@ public class MainActivity extends AppCompatActivity implements RequestDialog.Not
     private void askNotificationPermission() {
         // This is only necessary for API level >= 33 (TIRAMISU)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(this, POST_NOTIFICATIONS) ==
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) ==
                     PackageManager.PERMISSION_GRANTED) {
                 // FCM SDK (and your app) can post notifications.
-            } else if (shouldShowRequestPermissionRationale(POST_NOTIFICATIONS)) {
+            } else if (shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)) {
                 // TODO: display an educational UI explaining to the user the features that will be enabled
                 //       by them granting the POST_NOTIFICATION permission. This UI should provide the user
                 //       "OK" and "No thanks" buttons. If the user selects "OK," directly request the permission.
                 //       If the user selects "No thanks," allow the user to continue without notifications.
             } else {
                 // Directly ask for the permission
-                requestPermissionLauncher.launch(POST_NOTIFICATIONS);
+                requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS);
+            }
+        }
+    }
+
+
+    private void askPermission(String permission, int requestCode) {
+        if (ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_DENIED) {
+            ActivityCompat.requestPermissions(this, new String[]{permission}, requestCode);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == STORAGE_PERMISSION_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            } else {
+                Toast.makeText(getApplicationContext(), "Storage Permission Denied", Toast.LENGTH_SHORT).show();
             }
         }
     }

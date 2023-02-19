@@ -1,6 +1,7 @@
 package com.example.nocnha.controller;
 
 import static com.example.nocnha.Constants.EXTRA_URL;
+import static com.example.nocnha.Constants.STORAGE_PERMISSION_CODE;
 import static com.example.nocnha.Constants.USERS;
 import static com.example.nocnha.Constants.USER_IMAGE;
 
@@ -11,9 +12,13 @@ import androidx.activity.result.contract.ActivityResultContract;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -22,6 +27,7 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.example.nocnha.R;
 import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.Task;
@@ -65,7 +71,9 @@ public class UpdateInfoActivity extends AppCompatActivity {
         assert firebaseUser != null;
         databaseReference = FirebaseDatabase.getInstance().getReference().child(USERS).child(firebaseUser.getUid());
 
-        Picasso.get().load(userImgUrl).into(imgShowProfile);
+//        Picasso.get().load(userImgUrl).into(imgShowProfile);
+        Glide.with(getApplicationContext()).load(userImgUrl).into(imgShowProfile);
+//        askPermission(Manifest.permission.READ_EXTERNAL_STORAGE, STORAGE_PERMISSION_CODE);
 
         imgShowProfile.setOnLongClickListener(v -> {
             coverCheck = "profile";
@@ -74,6 +82,23 @@ public class UpdateInfoActivity extends AppCompatActivity {
         });
 
     }
+
+//    private void askPermission(String permission, int requestCode) {
+//        if (ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_DENIED) {
+//            ActivityCompat.requestPermissions(this, new String[]{permission}, requestCode);
+//        }
+//    }
+//
+//    @Override
+//    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+//        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+//        if (requestCode == STORAGE_PERMISSION_CODE) {
+//            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+//            } else {
+//                Toast.makeText(getApplicationContext(), "Storage Permission Denied", Toast.LENGTH_SHORT).show();
+//            }
+//        }
+//    }
 
     ActivityResultLauncher<Intent> activityResultLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),

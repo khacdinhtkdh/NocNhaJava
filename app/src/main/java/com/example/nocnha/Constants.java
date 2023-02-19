@@ -18,5 +18,5 @@ public interface Constants {
     String REQUEST_EXTRA = "REQUEST";
     String FCM_URL = "https://fcm.googleapis.com/";
 
-    String POST_NOTIFICATIONS = "android.permission.POST_NOTIFICATIONS";
+    public static final int STORAGE_PERMISSION_CODE = 101;
 }

@@ -1,7 +1,10 @@
 package com.example.nocnha.dialog;
 
 import static com.example.nocnha.Constants.APPROVE;
+import static com.example.nocnha.Constants.PENDING;
+import static com.example.nocnha.Constants.REJECT;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
@@ -9,6 +12,7 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.RadioGroup;
 import android.widget.Spinner;
 
 import androidx.annotation.Nullable;
@@ -36,18 +40,33 @@ public class FilterDialog extends DialogFragment {
         }
     }
 
+    @SuppressLint("NonConstantResourceId")
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         LayoutInflater inflater = requireActivity().getLayoutInflater();
         View view = inflater.inflate(R.layout.filter, null);
-        Spinner spinner = view.findViewById(R.id.filterSpinner);
+        RadioGroup radioGroup = view.findViewById(R.id.rd_group);
 
         builder.setTitle("Choose request type");
 
         builder.setView(view)
                 .setPositiveButton("OK", (dialog, which) -> {
-                    int status = spinner.getSelectedItemPosition();
+                    int rdID = radioGroup.getCheckedRadioButtonId();
+                    int status = 3;
+                    switch (rdID) {
+                        case R.id.rd_approve:
+                            status = APPROVE;
+                            break;
+                        case R.id.rd_reject:
+                            status = REJECT;
+                            break;
+                        case R.id.rd_pending:
+                            status = PENDING;
+                            break;
+                        default:
+                            break;
+                    }
                     listener.onDialogPositiveClick(FilterDialog.this, status);
                 });
 
